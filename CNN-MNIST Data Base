@@ -13,5 +13,68 @@ from keras import backend as K
 print(train_images.shape,test_images.shape)
 img_rows, img_cols = 28, 28
 
-x_train = train_images.reshape(train_images.shape[0], 28, 28, 1)
+ x_train = train_images.reshape(train_images.shape[0], 28, 28, 1)
 x_test = test_images.reshape(test_images.shape[0], 28, 28, 1)
+
+x_train = x_train.astype('float32')
+x_test = x_test.astype('float32')
+x_train /= 255
+x_test /= 255
+print('x_train shape:', x_train.shape)
+print(x_train.shape[0], 'train samples')
+print(x_test.shape[0], 'test samples')
+
+
+y_train = keras.utils.to_categorical(train_labels, 10)
+y_test = keras.utils.to_categorical(test_labels, 10)
+
+model = Sequential()
+model.add(Conv2D(32, kernel_size=(3, 3),
+                 activation='relu',
+                 input_shape=(28,28,1)))
+
+model.add(MaxPooling2D(pool_size=(2, 2), strides=None, padding='valid', data_format=None))
+model.add(Dropout(0.5))
+model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
+model.add(MaxPooling2D(pool_size=(2, 2), strides=None, padding='valid', data_format=None))
+model.add(Dropout(0.5))
+model.add(Flatten())
+model.add(Dense(128, activation='relu'))
+model.add(Dense(10, activation='softmax'))
+
+model.compile(loss='categorical_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+
+history=model.fit(x_train, y_train,
+          batch_size=250,
+          epochs=20,
+          verbose=1,
+          validation_data=(x_test, y_test))
+score = model.evaluate(x_test, y_test, verbose=0)
+
+
+plt.clf()
+history_dict = history.history
+loss_values = history_dict['loss']
+val_loss_values = history_dict['val_loss']
+epochs = range(1, (len(history_dict['loss']) + 1))
+plt.plot(epochs, loss_values, 'bo', label='Training loss')
+plt.plot(epochs, val_loss_values, 'b', label='Validation loss')
+plt.title('Training and validation loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+plt.show()
+
+plt.clf()
+acc_values = history_dict['acc']
+val_acc_values = history_dict['val_acc']
+epochs = range(1, (len(history_dict['acc']) + 1))
+plt.plot(epochs, acc_values, 'bo', label='Training acc')
+plt.plot(epochs, val_acc_values, 'b', label='Validation acc')
+plt.title('Training and validation accuracy')
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.show()
